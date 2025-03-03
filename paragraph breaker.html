@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paragraph Line Break Tool</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const ParagraphBreaker = () => {
+          const [inputText, setInputText] = React.useState('');
+          const [outputText, setOutputText] = React.useState('');
+          const [breakAfter, setBreakAfter] = React.useState(10);
+          const [breakMode, setBreakMode] = React.useState('words');
+
+          const handleInputChange = (e) => {
+            setInputText(e.target.value);
+            processText(e.target.value, breakAfter, breakMode);
+          };
+
+          const handleBreakAfterChange = (e) => {
+            const value = parseInt(e.target.value) || 1;
+            setBreakAfter(value);
+            processText(inputText, value, breakMode);
+          };
+
+          const handleBreakModeChange = (e) => {
+            setBreakMode(e.target.value);
+            processText(inputText, breakAfter, e.target.value);
+          };
+
+          const processText = (text, after, mode) => {
+            if (!text) {
+              setOutputText('');
+              return;
+            }
+
+            let result = '';
+            
+            if (mode === 'words') {
+              // Break after specified number of words
+              const words = text.split(' ');
+              for (let i = 0; i < words.length; i++) {
+                result += words[i] + ' ';
+                if ((i + 1) % after === 0 && i < words.length - 1) {
+                  result += '\n';
+                }
+              }
+            } else if (mode === 'characters') {
+              // Break after specified number of characters
+              for (let i = 0; i < text.length; i++) {
+                result += text[i];
+                if ((i + 1) % after === 0 && i < text.length - 1) {
+                  result += '\n';
+                }
+              }
+            } else if (mode === 'sentences') {
+              // Break after sentences (periods, question marks, exclamation points)
+              const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+              result = sentences.join('\n');
+            }
+
+            setOutputText(result);
+          };
+
+          const copyToClipboard = () => {
+            navigator.clipboard.writeText(outputText)
+              .then(() => {
+                alert('Text copied to clipboard!');
+              })
+              .catch(err => {
+                console.error('Failed to copy text: ', err);
+              });
+          };
+
+          return (
+            <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+              <h1 className="text-2xl font-bold mb-6 text-center">Paragraph Line Break Tool</h1>
+              
+              <div className="mb-6">
+                <label className="block mb-2 font-medium">Break Mode:</label>
+                <div className="flex gap-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="words"
+                      checked={breakMode === 'words'}
+                      onChange={handleBreakModeChange}
+                      className="mr-2"
+                    />
+                    Words
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="characters"
+                      checked={breakMode === 'characters'}
+                      onChange={handleBreakModeChange}
+                      className="mr-2"
+                    />
+                    Characters
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      value="sentences"
+                      checked={breakMode === 'sentences'}
+                      onChange={handleBreakModeChange}
+                      className="mr-2"
+                    />
+                    Sentences
+                  </label>
+                </div>
+              </div>
+              
+              {breakMode !== 'sentences' && (
+                <div className="mb-6">
+                  <label className="block mb-2 font-medium">
+                    Break after how many {breakMode}?
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={breakAfter}
+                    onChange={handleBreakAfterChange}
+                    className="w-20 p-2 border border-gray-300 rounded"
+                  />
+                </div>
+              )}
+              
+              <div className="mb-6">
+                <label className="block mb-2 font-medium">Input Paragraph:</label>
+                <textarea
+                  value={inputText}
+                  onChange={handleInputChange}
+                  className="w-full h-40 p-4 border border-gray-300 rounded resize-none"
+                  placeholder="Paste your paragraph here..."
+                ></textarea>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block mb-2 font-medium">Output with Line Breaks:</label>
+                <div className="relative">
+                  <textarea
+                    value={outputText}
+                    readOnly
+                    className="w-full h-40 p-4 border border-gray-300 rounded resize-none bg-gray-50"
+                  ></textarea>
+                  {outputText && (
+                    <button
+                      onClick={copyToClipboard}
+                      className="absolute top-2 right-2 px-2 py-1 bg-blue-500 text-white rounded text-sm"
+                    >
+                      Copy
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<ParagraphBreaker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
